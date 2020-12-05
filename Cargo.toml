@@ -1,0 +1,13 @@
+[package]
+name = "eg-seven-segment"
+version = "0.1.0"
+authors = ["Ralf Fuest <mail@rfuest.de>"]
+edition = "2018"
+repository = "https://github.com/embedded-graphics/eg-seven-segment"
+documentation = "https://docs.rs/embedded-graphics"
+categories = ["embedded", "no-std"]
+keywords = ["embedded-graphics", "font"]
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
