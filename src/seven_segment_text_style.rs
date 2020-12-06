@@ -1,7 +1,11 @@
-use crate::Segments;
 use core::convert::TryFrom;
-use embedded_graphics::{prelude::*, primitives::Rectangle, style::TextStyle};
+use embedded_graphics::{
+    geometry::AnchorPoint, prelude::*, primitives::Rectangle, style::TextStyle,
+};
 
+use crate::{segment::Segment, Segments};
+
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[non_exhaustive]
 pub struct SevenSegmentTextStyle<C> {
     pub digit_size: Size,
@@ -12,80 +16,13 @@ pub struct SevenSegmentTextStyle<C> {
 }
 
 impl<C: PixelColor> SevenSegmentTextStyle<C> {
-    fn draw_segment<D>(
-        &self,
-        rectangle: &Rectangle,
-        active: bool,
-        target: &mut D,
-    ) -> Result<(), D::Error>
-    where
-        D: DrawTarget<Color = C>,
-    {
-        let color = if active {
+    /// Returns the fill color for the given segment state.
+    fn state_color(&self, state: bool) -> Option<C> {
+        if state {
             self.segment_color
         } else {
             self.inactive_segment_color
-        };
-
-        let color = if let Some(color) = color {
-            color
-        } else {
-            return Ok(());
-        };
-
-        let horizontal = rectangle.size.width > rectangle.size.height;
-        let major_size = if horizontal {
-            rectangle.size.height
-        } else {
-            rectangle.size.width
-        };
-        let offset = major_size / 2 + 1 + (major_size - 1) / 2;
-
-        let mut rect = if horizontal {
-            Rectangle::new(
-                rectangle.top_left + Size::new(offset, 0),
-                Size::new(rectangle.size.width - offset * 2, 1),
-            )
-        } else {
-            Rectangle::new(
-                rectangle.top_left + Size::new(0, offset),
-                Size::new(1, rectangle.size.height - offset * 2),
-            )
-        };
-
-        for _ in 0..(major_size + 1) / 2 {
-            target.fill_solid(&rect, color)?;
-
-            if horizontal {
-                rect.top_left += Point::new(-1, 1);
-                rect.size.width += 2;
-            } else {
-                rect.top_left += Point::new(1, -1);
-                rect.size.height += 2;
-            }
         }
-
-        let delta = if major_size % 2 == 0 { 1 } else { 2 };
-        if horizontal {
-            rect.top_left.x += delta;
-            rect.size.width -= delta as u32 * 2;
-        } else {
-            rect.top_left.y += delta;
-            rect.size.height -= delta as u32 * 2;
-        }
-
-        for _ in 0..major_size / 2 {
-            target.fill_solid(&rect, color)?;
-
-            rect.top_left += Point::new(1, 1);
-            if horizontal {
-                rect.size.width -= 2;
-            } else {
-                rect.size.height -= 2;
-            }
-        }
-
-        Ok(())
     }
 }
 
@@ -103,45 +40,73 @@ impl<C: PixelColor> TextStyle for SevenSegmentTextStyle<C> {
     {
         for c in text.chars() {
             if let Ok(segments) = Segments::try_from(c) {
-                let dx = self.digit_size.width - self.segment_width;
+                let rect = Rectangle::new(position, self.digit_size);
 
-                let mut rect = Rectangle::new(
-                    position,
-                    Size::new(self.digit_size.width, self.segment_width),
+                let vertical_size = Size::new(self.digit_size.width, self.segment_width);
+                let horizontal_size_top = Size::new(
+                    self.segment_width,
+                    (self.digit_size.height + self.segment_width) / 2,
                 );
-                self.draw_segment(&rect, segments.contains(Segments::A), target)?;
-
-                rect.top_left += Size::new(0, (self.digit_size.height - self.segment_width) / 2);
-                self.draw_segment(&rect, segments.contains(Segments::G), target)?;
-
-                rect.top_left +=
-                    Size::new(0, (self.digit_size.height - self.segment_width + 1) / 2);
-                self.draw_segment(&rect, segments.contains(Segments::D), target)?;
-
-                rect = Rectangle::new(
-                    position,
-                    Size::new(
-                        self.segment_width,
-                        self.digit_size.height / 2 + self.segment_width / 2,
-                    ),
+                let horizontal_size_bottom = Size::new(
+                    self.segment_width,
+                    (self.digit_size.height + self.segment_width + 1) / 2,
                 );
-                self.draw_segment(&rect, segments.contains(Segments::F), target)?;
 
-                rect.top_left.x += dx as i32;
-                self.draw_segment(&rect, segments.contains(Segments::B), target)?;
+                if let Some(color) = self.state_color(segments.contains(Segments::A)) {
+                    Segment::with_reduced_size(
+                        rect.resized(vertical_size, AnchorPoint::TopLeft),
+                        color,
+                    )
+                    .draw(target)?;
+                }
 
-                rect = Rectangle::new(
-                    position
-                        + Size::new(0, self.digit_size.height / 2 - (self.segment_width + 1) / 2),
-                    Size::new(
-                        self.segment_width,
-                        self.digit_size.height / 2 + (self.segment_width + 1) / 2,
-                    ),
-                );
-                self.draw_segment(&rect, segments.contains(Segments::E), target)?;
+                if let Some(color) = self.state_color(segments.contains(Segments::B)) {
+                    Segment::with_reduced_size(
+                        rect.resized(horizontal_size_top, AnchorPoint::TopRight),
+                        color,
+                    )
+                    .draw(target)?;
+                }
 
-                rect.top_left.x += dx as i32;
-                self.draw_segment(&rect, segments.contains(Segments::C), target)?;
+                if let Some(color) = self.state_color(segments.contains(Segments::C)) {
+                    Segment::with_reduced_size(
+                        rect.resized(horizontal_size_bottom, AnchorPoint::BottomRight),
+                        color,
+                    )
+                    .draw(target)?;
+                }
+
+                if let Some(color) = self.state_color(segments.contains(Segments::D)) {
+                    Segment::with_reduced_size(
+                        rect.resized(vertical_size, AnchorPoint::BottomLeft),
+                        color,
+                    )
+                    .draw(target)?;
+                }
+
+                if let Some(color) = self.state_color(segments.contains(Segments::E)) {
+                    Segment::with_reduced_size(
+                        rect.resized(horizontal_size_bottom, AnchorPoint::BottomLeft),
+                        color,
+                    )
+                    .draw(target)?;
+                }
+
+                if let Some(color) = self.state_color(segments.contains(Segments::F)) {
+                    Segment::with_reduced_size(
+                        rect.resized(horizontal_size_top, AnchorPoint::TopLeft),
+                        color,
+                    )
+                    .draw(target)?;
+                }
+
+                if let Some(color) = self.state_color(segments.contains(Segments::G)) {
+                    Segment::with_reduced_size(
+                        rect.resized(vertical_size, AnchorPoint::CenterLeft),
+                        color,
+                    )
+                    .draw(target)?;
+                }
 
                 position += self.digit_size.x_axis() + Size::new(self.digit_spacing, 0);
             } else if c == ':' {
@@ -171,5 +136,287 @@ impl<C: PixelColor> TextStyle for SevenSegmentTextStyle<C> {
 
     fn line_bounding_box(&self, _text: &str, _position: Point) -> (Rectangle, Point) {
         todo!()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::SevenSegmentTextStyleBuilder;
+    use embedded_graphics::{fonts::Text, mock_display::MockDisplay, pixelcolor::BinaryColor};
+
+    fn test_digits(
+        style: SevenSegmentTextStyle<BinaryColor>,
+        digits: &str,
+        expected_pattern: &[&str],
+    ) {
+        let mut display = MockDisplay::new();
+        Text::new(digits, Point::zero())
+            .into_styled(style)
+            .draw(&mut display)
+            .unwrap();
+
+        display.assert_pattern(expected_pattern);
+    }
+
+    #[test]
+    fn digits_1px_9px() {
+        let style = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(5, 9))
+            .digit_spacing(1)
+            .segment_width(1)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        test_digits(
+            style,
+            "0123456789",
+            &[
+                " ###         ###   ###         ###   ###   ###   ###   ### ",
+                "#   #     #     #     # #   # #     #         # #   # #   #",
+                "#   #     #     #     # #   # #     #         # #   # #   #",
+                "#   #     #     #     # #   # #     #         # #   # #   #",
+                "             ###   ###   ###   ###   ###         ###   ### ",
+                "#   #     # #         #     #     # #   #     # #   #     #",
+                "#   #     # #         #     #     # #   #     # #   #     #",
+                "#   #     # #         #     #     # #   #     # #   #     #",
+                " ###         ###   ###         ###   ###         ###   ### ",
+            ],
+        );
+    }
+
+    #[test]
+    fn digits_1px_10px() {
+        let style = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(5, 10))
+            .digit_spacing(1)
+            .segment_width(1)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        test_digits(
+            style,
+            "0123456789",
+            &[
+                " ###         ###   ###         ###   ###   ###   ###   ### ",
+                "#   #     #     #     # #   # #     #         # #   # #   #",
+                "#   #     #     #     # #   # #     #         # #   # #   #",
+                "#   #     #     #     # #   # #     #         # #   # #   #",
+                "             ###   ###   ###   ###   ###         ###   ### ",
+                "#   #     # #         #     #     # #   #     # #   #     #",
+                "#   #     # #         #     #     # #   #     # #   #     #",
+                "#   #     # #         #     #     # #   #     # #   #     #",
+                "#   #     # #         #     #     # #   #     # #   #     #",
+                " ###         ###   ###         ###   ###         ###   ### ",
+            ],
+        );
+    }
+
+    #[test]
+    fn digits_2px_12px() {
+        let style = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(7, 12))
+            .digit_spacing(1)
+            .segment_width(2)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        test_digits(
+            style,
+            "01234",
+            &[
+                "  ###             ###     ###          ",
+                "  ###             ###     ###          ",
+                "##   ##      ##      ##      ## ##   ##",
+                "##   ##      ##      ##      ## ##   ##",
+                "##   ##      ##      ##      ## ##   ##",
+                "                  ###     ###     ###  ",
+                "                  ###     ###     ###  ",
+                "##   ##      ## ##           ##      ##",
+                "##   ##      ## ##           ##      ##",
+                "##   ##      ## ##           ##      ##",
+                "  ###             ###     ###          ",
+                "  ###             ###     ###          ",
+            ],
+        );
+
+        test_digits(
+            style,
+            "56789",
+            &[
+                "  ###     ###     ###     ###     ###  ",
+                "  ###     ###     ###     ###     ###  ",
+                "##      ##           ## ##   ## ##   ##",
+                "##      ##           ## ##   ## ##   ##",
+                "##      ##           ## ##   ## ##   ##",
+                "  ###     ###             ###     ###  ",
+                "  ###     ###             ###     ###  ",
+                "     ## ##   ##      ## ##   ##      ##",
+                "     ## ##   ##      ## ##   ##      ##",
+                "     ## ##   ##      ## ##   ##      ##",
+                "  ###     ###             ###     ###  ",
+                "  ###     ###             ###     ###  ",
+            ],
+        );
+    }
+
+    #[test]
+    fn digits_2px_13px() {
+        let style = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(7, 13))
+            .digit_spacing(1)
+            .segment_width(2)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        test_digits(
+            style,
+            "01234",
+            &[
+                "  ###             ###     ###          ",
+                "  ###             ###     ###          ",
+                "##   ##      ##      ##      ## ##   ##",
+                "##   ##      ##      ##      ## ##   ##",
+                "##   ##      ##      ##      ## ##   ##",
+                "                  ###     ###     ###  ",
+                "                  ###     ###     ###  ",
+                "##   ##      ## ##           ##      ##",
+                "##   ##      ## ##           ##      ##",
+                "##   ##      ## ##           ##      ##",
+                "##   ##      ## ##           ##      ##",
+                "  ###             ###     ###          ",
+                "  ###             ###     ###          ",
+            ],
+        );
+
+        test_digits(
+            style,
+            "56789",
+            &[
+                "  ###     ###     ###     ###     ###  ",
+                "  ###     ###     ###     ###     ###  ",
+                "##      ##           ## ##   ## ##   ##",
+                "##      ##           ## ##   ## ##   ##",
+                "##      ##           ## ##   ## ##   ##",
+                "  ###     ###             ###     ###  ",
+                "  ###     ###             ###     ###  ",
+                "     ## ##   ##      ## ##   ##      ##",
+                "     ## ##   ##      ## ##   ##      ##",
+                "     ## ##   ##      ## ##   ##      ##",
+                "     ## ##   ##      ## ##   ##      ##",
+                "  ###     ###             ###     ###  ",
+                "  ###     ###             ###     ###  ",
+            ],
+        );
+    }
+
+    #[test]
+    fn digits_3px_15px() {
+        let style = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(9, 15))
+            .digit_spacing(1)
+            .segment_width(3)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        test_digits(
+            style,
+            "01234",
+            &[
+                "   ###                 ###       ###             ",
+                "  #####               #####     #####            ",
+                " # ### #         #     ### #     ### #   #     # ",
+                "###   ###       ###       ###       ### ###   ###",
+                "###   ###       ###       ###       ### ###   ###",
+                "###   ###       ###       ###       ### ###   ###",
+                " #     #         #     ### #     ### #   # ### # ",
+                "                      #####     #####     #####  ",
+                " #     #         #   # ###       ### #     ### # ",
+                "###   ###       ### ###             ###       ###",
+                "###   ###       ### ###             ###       ###",
+                "###   ###       ### ###             ###       ###",
+                " # ### #         #   # ###       ### #         # ",
+                "  #####               #####     #####            ",
+                "   ###                 ###       ###             ",
+            ],
+        );
+
+        test_digits(
+            style,
+            "56789",
+            &[
+                "   ###       ###       ###       ###       ###   ",
+                "  #####     #####     #####     #####     #####  ",
+                " # ###     # ###       ### #   # ### #   # ### # ",
+                "###       ###             ### ###   ### ###   ###",
+                "###       ###             ### ###   ### ###   ###",
+                "###       ###             ### ###   ### ###   ###",
+                " # ###     # ###           #   # ### #   # ### # ",
+                "  #####     #####               #####     #####  ",
+                "   ### #   # ### #         #   # ### #     ### # ",
+                "      ### ###   ###       ### ###   ###       ###",
+                "      ### ###   ###       ### ###   ###       ###",
+                "      ### ###   ###       ### ###   ###       ###",
+                "   ### #   # ### #         #   # ### #     ### # ",
+                "  #####     #####               #####     #####  ",
+                "   ###       ###                 ###       ###   ",
+            ],
+        );
+    }
+
+    #[test]
+    fn digits_3px_16px() {
+        let style = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(9, 16))
+            .digit_spacing(1)
+            .segment_width(3)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        test_digits(
+            style,
+            "01234",
+            &[
+                "   ###                 ###       ###             ",
+                "  #####               #####     #####            ",
+                " # ### #         #     ### #     ### #   #     # ",
+                "###   ###       ###       ###       ### ###   ###",
+                "###   ###       ###       ###       ### ###   ###",
+                "###   ###       ###       ###       ### ###   ###",
+                " #     #         #     ### #     ### #   # ### # ",
+                "                      #####     #####     #####  ",
+                " #     #         #   # ###       ### #     ### # ",
+                "###   ###       ### ###             ###       ###",
+                "###   ###       ### ###             ###       ###",
+                "###   ###       ### ###             ###       ###",
+                "###   ###       ### ###             ###       ###",
+                " # ### #         #   # ###       ### #         # ",
+                "  #####               #####     #####            ",
+                "   ###                 ###       ###             ",
+            ],
+        );
+
+        test_digits(
+            style,
+            "56789",
+            &[
+                "   ###       ###       ###       ###       ###   ",
+                "  #####     #####     #####     #####     #####  ",
+                " # ###     # ###       ### #   # ### #   # ### # ",
+                "###       ###             ### ###   ### ###   ###",
+                "###       ###             ### ###   ### ###   ###",
+                "###       ###             ### ###   ### ###   ###",
+                " # ###     # ###           #   # ### #   # ### # ",
+                "  #####     #####               #####     #####  ",
+                "   ### #   # ### #         #   # ### #     ### # ",
+                "      ### ###   ###       ### ###   ###       ###",
+                "      ### ###   ###       ### ###   ###       ###",
+                "      ### ###   ###       ### ###   ###       ###",
+                "      ### ###   ###       ### ###   ###       ###",
+                "   ### #   # ### #         #   # ### #     ### # ",
+                "  #####     #####               #####     #####  ",
+                "   ###       ###                 ###       ###   ",
+            ],
+        );
     }
 }

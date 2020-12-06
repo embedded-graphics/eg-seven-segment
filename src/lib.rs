@@ -1,5 +1,6 @@
 #![no_std]
 
+mod segment;
 mod segments;
 mod seven_segment_text_style;
 mod seven_segment_text_style_builder;
