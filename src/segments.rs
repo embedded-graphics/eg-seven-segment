@@ -83,7 +83,7 @@ impl TryFrom<char> for Segments {
 mod tests {
     use crate::SevenSegmentTextStyleBuilder;
     use embedded_graphics::{
-        fonts::Text, mock_display::MockDisplay, pixelcolor::BinaryColor, prelude::*,
+        mock_display::MockDisplay, pixelcolor::BinaryColor, prelude::*, text::Text,
     };
 
     fn test_segments(text: &str, expected_pattern: &[&str]) {

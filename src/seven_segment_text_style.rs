@@ -1,6 +1,9 @@
 use core::convert::TryFrom;
 use embedded_graphics::{
-    geometry::AnchorPoint, prelude::*, primitives::Rectangle, style::TextStyle,
+    geometry::AnchorPoint,
+    prelude::*,
+    primitives::Rectangle,
+    text::{TextMetrics, TextRenderer, VerticalAlignment},
 };
 
 use crate::{segment::Segment, Segments};
@@ -26,10 +29,10 @@ impl<C: PixelColor> SevenSegmentTextStyle<C> {
     }
 }
 
-impl<C: PixelColor> TextStyle for SevenSegmentTextStyle<C> {
+impl<C: PixelColor> TextRenderer for SevenSegmentTextStyle<C> {
     type Color = C;
 
-    fn render_line<D>(
+    fn draw_string<D>(
         &self,
         text: &str,
         mut position: Point,
@@ -134,8 +137,29 @@ impl<C: PixelColor> TextStyle for SevenSegmentTextStyle<C> {
         Ok(Point::new(0, self.digit_size.height as i32 * 3 / 2))
     }
 
-    fn line_bounding_box(&self, _text: &str, _position: Point) -> (Rectangle, Point) {
+    fn draw_whitespace<D>(
+        &self,
+        width: u32,
+        position: Point,
+        _target: &mut D,
+    ) -> Result<Point, D::Error>
+    where
+        D: DrawTarget<Color = Self::Color>,
+    {
+        Ok(position + Size::new(width, 0))
+    }
+
+    fn measure_string(&self, _text: &str, _position: Point) -> TextMetrics {
         todo!()
+    }
+
+    fn vertical_offset(&self, position: Point, _vertical_alignment: VerticalAlignment) -> Point {
+        // TODO: support other alignements
+        position
+    }
+
+    fn line_height(&self) -> u32 {
+        self.digit_size.height + self.digit_spacing
     }
 }
 
@@ -143,7 +167,7 @@ impl<C: PixelColor> TextStyle for SevenSegmentTextStyle<C> {
 mod tests {
     use super::*;
     use crate::SevenSegmentTextStyleBuilder;
-    use embedded_graphics::{fonts::Text, mock_display::MockDisplay, pixelcolor::BinaryColor};
+    use embedded_graphics::{mock_display::MockDisplay, pixelcolor::BinaryColor, text::Text};
 
     fn test_digits(
         style: SevenSegmentTextStyle<BinaryColor>,
