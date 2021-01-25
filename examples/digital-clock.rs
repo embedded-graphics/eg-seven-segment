@@ -1,5 +1,5 @@
 use eg_seven_segment::SevenSegmentTextStyleBuilder;
-use embedded_graphics::{fonts::Text, pixelcolor::BinaryColor, prelude::*};
+use embedded_graphics::{pixelcolor::BinaryColor, prelude::*, text::Text};
 use embedded_graphics_simulator::{
     BinaryColorTheme, OutputSettingsBuilder, SimulatorDisplay, Window,
 };
