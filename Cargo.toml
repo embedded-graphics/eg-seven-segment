@@ -11,15 +11,8 @@ readme = "README.md"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-# TODO: use embedded-graphics-core after
-#       https://github.com/embedded-graphics/embedded-graphics/issues/505 is resolved
-embedded-graphics = { git = "https://github.com/embedded-graphics/embedded-graphics.git"}
+embedded-graphics = "0.7.0-alpha.3"
 bitflags = "1.2.1"
 
 [dev-dependencies]
-embedded-graphics-simulator = { git = "https://github.com/embedded-graphics/simulator.git"}
-
-# TODO: remove
-[patch.crates-io]
-embedded-graphics = { git = "https://github.com/embedded-graphics/embedded-graphics.git"}
-embedded-graphics-simulator = { git = "https://github.com/embedded-graphics/simulator.git"}
+embedded-graphics-simulator = "0.3.0-alpha.2"
