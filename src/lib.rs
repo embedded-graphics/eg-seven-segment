@@ -1,3 +1,5 @@
+//! Seven segment text renderer for embedded-graphics
+
 #![no_std]
 
 mod segment;

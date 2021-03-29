@@ -1,3 +1,5 @@
-# Seven segment font
+# eg-seven-segment
 
-`eg-seven-segment` is a scalable seven segment font for `embedded-graphics`.
+Seven segment text renderer for embedded-graphics
+
+License: MIT OR Apache-2.0
