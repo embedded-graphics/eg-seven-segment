@@ -74,6 +74,8 @@ impl TryFrom<char> for Segments {
             ')' | ']' => Self::A | Self::B | Self::C | Self::D,
             '?' => Self::A | Self::B | Self::E | Self::G,
             // TODO: add https://en.wikipedia.org/wiki/Symbols_for_Legacy_Computing ?
+            // TODO: document POA
+            '\u{E000}'..='\u{E07F}' => Self::from_bits(value as u8 & 0xFF).unwrap(),
             _ => return Err(()),
         })
     }
@@ -202,6 +204,22 @@ mod tests {
                 "#     #         #     # #    ",
                 "#     #         #     # #    ",
                 " ###   ###   ###   ###       ",
+            ],
+        );
+    }
+
+    #[test]
+    fn private_use_area() {
+        test_segments(
+            "\u{E040}\u{E020}\u{E010}\u{E008}\u{E004}\u{E002}\u{E001}\u{E055}\u{E02A}",
+            &[
+                " ###                                       ###       ",
+                "          #                   #                 #   #",
+                "          #                   #                 #   #",
+                "                                     ###   ###       ",
+                "                #       #                 #   #      ",
+                "                #       #                 #   #      ",
+                "                   ###                           ### ",
             ],
         );
     }
