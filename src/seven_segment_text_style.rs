@@ -132,8 +132,10 @@ impl<D: DrawTarget> RenderText<D> for SevenSegmentTextStyle<D::Color> {
             }
         }
 
-        // TODO: make row spacing configurable
-        Ok(Point::new(0, self.digit_size.height as i32 * 3 / 2))
+        Ok(Point::new(
+            (self.digit_size.width + self.digit_spacing) as i32 * text.len() as i32,
+            0,
+        ))
     }
 
     fn draw_whitespace(
@@ -436,6 +438,79 @@ mod tests {
                 "   ### #   # ### #         #   # ### #     ### # ",
                 "  #####     #####               #####     #####  ",
                 "   ###       ###                 ###       ###   ",
+            ],
+        );
+    }
+
+    #[test]
+    fn chaining() {
+        let style1 = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(5, 9))
+            .digit_spacing(1)
+            .segment_width(1)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        let style2 = SevenSegmentTextStyleBuilder::from(&style1)
+            .segment_color(BinaryColor::Off)
+            .build();
+
+        let mut display = MockDisplay::new();
+        let next = Text::new("12", Point::zero())
+            .into_styled(style1)
+            .draw(&mut display)
+            .unwrap();
+        Text::new("3", next)
+            .into_styled(style2)
+            .draw(&mut display)
+            .unwrap();
+
+        display.assert_pattern(&[
+            "       ###   ... ",
+            "    #     #     .",
+            "    #     #     .",
+            "    #     #     .",
+            "       ###   ... ",
+            "    # #         .",
+            "    # #         .",
+            "    # #         .",
+            "       ###   ... ",
+        ])
+    }
+
+    #[test]
+    fn multiple_lines() {
+        let style = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(5, 9))
+            .digit_spacing(2)
+            .segment_width(1)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        test_digits(
+            style,
+            "12\n3",
+            &[
+                "        ### ",
+                "    #      #",
+                "    #      #",
+                "    #      #",
+                "        ### ",
+                "    #  #    ",
+                "    #  #    ",
+                "    #  #    ",
+                "        ### ",
+                "            ",
+                "            ",
+                " ###        ",
+                "    #       ",
+                "    #       ",
+                "    #       ",
+                " ###        ",
+                "    #       ",
+                "    #       ",
+                "    #       ",
+                " ###        ",
             ],
         );
     }

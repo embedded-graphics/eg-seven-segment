@@ -60,3 +60,9 @@ impl<C: PixelColor> SevenSegmentTextStyleBuilder<C> {
         self.style
     }
 }
+
+impl<C: PixelColor> From<&SevenSegmentTextStyle<C>> for SevenSegmentTextStyleBuilder<C> {
+    fn from(style: &SevenSegmentTextStyle<C>) -> Self {
+        Self { style: *style }
+    }
+}
