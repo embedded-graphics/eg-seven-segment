@@ -1,9 +1,10 @@
 # eg-seven-segment
 
-Scalable seven-segment text renderer.
+`eg-seven-segment`is a seven-segment text renderer for use with
+[`embedded-graphics`]. It can be used to draw seven-segment displays with
+any size.
 
-`eg-seven-segment`is a text renderer for use with [`embedded-graphics`].
-It can be used to draw seven-segment displays with any size.
+![eg-seven-segment example][img1]
 
 ## Examples
 
@@ -11,6 +12,7 @@ It can be used to draw seven-segment displays with any size.
 use embedded_graphics::{prelude::*, text::Text, pixelcolor::Rgb888};
 use eg_seven_segment::SevenSegmentTextStyleBuilder;
 
+// Define a new style.
 let style = SevenSegmentTextStyleBuilder::new()
     .digit_size(Size::new(10, 20)) // digits are 10x20 pixels
     .digit_spacing(5)              // 5px spacing between digits
@@ -18,12 +20,14 @@ let style = SevenSegmentTextStyleBuilder::new()
     .segment_color(Rgb888::GREEN)  // active segments are green
     .build();
 
+// Use the style to draw text to a embedded-graphics `DrawTarget`.
 Text::new("12:42", Point::new(5, 25))
     .into_styled(style)
     .draw(&mut display)?;
 ```
 
 [`embedded-graphics`]:  https://github.com/embedded-graphics/embedded-graphics
+[img1]: assets/styles.png
 
 ## License
 

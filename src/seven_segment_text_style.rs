@@ -154,8 +154,17 @@ impl<D: DrawTarget> RenderText<D> for SevenSegmentTextStyle<D::Color> {
 
                     position += Size::new(self.segment_width + self.digit_spacing, 0);
                 }
+            } else if c == '.' {
+                if let Some(color) = self.segment_color {
+                    let rect = Rectangle::new(
+                        position + Size::new(0, self.digit_size.height - self.segment_width),
+                        Size::new(self.segment_width, self.segment_width),
+                    );
+                    target.fill_solid(&rect, color)?;
+
+                    position += Size::new(self.segment_width + self.digit_spacing, 0);
+                }
             } else {
-                // TODO: add '.'
                 // TODO: how should other characters be handled?
             }
         }
