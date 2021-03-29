@@ -13,13 +13,21 @@ use core::convert::TryFrom;
 //  DDDDD
 
 bitflags! {
+    /// Segments.
     pub struct Segments: u8 {
+        /// A segment.
         const A = 0b01000000;
+        /// B segment.
         const B = 0b00100000;
+        /// C segment.
         const C = 0b00010000;
+        /// D segment.
         const D = 0b00001000;
+        /// E segment.
         const E = 0b00000100;
+        /// F segment.
         const F = 0b00000010;
+        /// G segment.
         const G = 0b00000001;
     }
 }
@@ -75,7 +83,7 @@ impl TryFrom<char> for Segments {
             '?' => Self::A | Self::B | Self::E | Self::G,
             // TODO: add https://en.wikipedia.org/wiki/Symbols_for_Legacy_Computing ?
             // TODO: document POA
-            '\u{E000}'..='\u{E07F}' => Self::from_bits(value as u8 & 0xFF).unwrap(),
+            '\u{E000}'..='\u{E07F}' => Self::from_bits(value as u8).unwrap(),
             _ => return Err(()),
         })
     }

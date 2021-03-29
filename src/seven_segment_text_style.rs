@@ -1,4 +1,5 @@
 use core::convert::TryFrom;
+
 use embedded_graphics::{
     geometry::AnchorPoint,
     prelude::*,
@@ -11,13 +12,27 @@ use embedded_graphics::{
 
 use crate::{segment::Segment, Segments};
 
+/// Seven-segment text style.
+///
+/// Use [`SevenSegmentTextStyleBuilder`] to build styles.
+///
+/// [`SevenSegmentTextStyleBuilder`]: struct.SevenSegmentTextStyleBuilder.html
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[non_exhaustive]
 pub struct SevenSegmentTextStyle<C> {
+    /// The size of each digit.
     pub digit_size: Size,
+
+    /// The spacing between adjacent digits.
     pub digit_spacing: u32,
+
+    /// The width of the segments.
     pub segment_width: u32,
+
+    /// The color of active segments.
     pub segment_color: Option<C>,
+
+    /// The color of inactive segments.
     pub inactive_segment_color: Option<C>,
 }
 
@@ -164,8 +179,20 @@ impl<D: DrawTarget> RenderText<D> for SevenSegmentTextStyle<D::Color> {
 impl<C: PixelColor> CharacterStyle for SevenSegmentTextStyle<C> {
     type Color = C;
 
-    fn measure_string(&self, _text: &str, _position: Point, _baseline: Baseline) -> TextMetrics {
-        todo!()
+    fn measure_string(&self, text: &str, position: Point, baseline: Baseline) -> TextMetrics {
+        let width = (text.len() as u32 * (self.digit_size.width + self.digit_spacing))
+            .saturating_sub(self.digit_spacing);
+
+        let bounding_box = Rectangle::new(
+            position - Size::new(0, self.baseline_offset(baseline)),
+            Size::new(width, self.digit_size.height),
+        );
+        let next_position = position + Size::new(width, 0);
+
+        TextMetrics {
+            bounding_box,
+            next_position,
+        }
     }
 
     fn line_height(&self) -> u32 {

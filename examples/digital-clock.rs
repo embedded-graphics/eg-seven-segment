@@ -1,5 +1,9 @@
 use eg_seven_segment::SevenSegmentTextStyleBuilder;
-use embedded_graphics::{pixelcolor::BinaryColor, prelude::*, text::Text};
+use embedded_graphics::{
+    pixelcolor::BinaryColor,
+    prelude::*,
+    text::{Alignment, Baseline, Text, TextStyleBuilder},
+};
 use embedded_graphics_simulator::{
     BinaryColorTheme, OutputSettingsBuilder, SimulatorDisplay, Window,
 };
@@ -7,19 +11,20 @@ use embedded_graphics_simulator::{
 fn main() {
     let mut display = SimulatorDisplay::<BinaryColor>::new(Size::new(128, 64));
 
-    let style = SevenSegmentTextStyleBuilder::new()
+    let character_style = SevenSegmentTextStyleBuilder::new()
         .segment_color(BinaryColor::On)
         .build();
 
-    Text::new(
-        "12:42",
-        Point::new(10, 10)
-        // TODO: use display center point when text alignment is implemented
-        // display.bounding_box().anchor_point(AnchorPoint::Center),
-    )
-    .into_styled(style)
-    .draw(&mut display)
-    .unwrap();
+    let text_style = TextStyleBuilder::new()
+        .character_style(character_style)
+        .alignment(Alignment::Center)
+        .baseline(Baseline::Middle)
+        .build();
+
+    Text::new("12:42", display.bounding_box().center())
+        .into_styled(text_style)
+        .draw(&mut display)
+        .unwrap();
 
     let settings = OutputSettingsBuilder::new()
         .theme(BinaryColorTheme::OledBlue)
