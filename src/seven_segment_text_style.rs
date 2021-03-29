@@ -30,6 +30,17 @@ impl<C: PixelColor> SevenSegmentTextStyle<C> {
             self.inactive_segment_color
         }
     }
+
+    /// Returns the vertical offset between the line position and the top edge of the bounding box.
+    fn baseline_offset(&self, baseline: Baseline) -> u32 {
+        let bottom = self.digit_size.height.saturating_sub(1);
+
+        match baseline {
+            Baseline::Top => 0,
+            Baseline::Bottom | Baseline::Alphabetic => bottom,
+            Baseline::Middle => bottom / 2,
+        }
+    }
 }
 
 impl<D: DrawTarget> RenderText<D> for SevenSegmentTextStyle<D::Color> {
@@ -40,6 +51,8 @@ impl<D: DrawTarget> RenderText<D> for SevenSegmentTextStyle<D::Color> {
         baseline: Baseline,
         target: &mut D,
     ) -> Result<Point, D::Error> {
+        position -= Size::new(0, self.baseline_offset(baseline));
+
         for c in text.chars() {
             if let Ok(segments) = Segments::try_from(c) {
                 let rect = Rectangle::new(position, self.digit_size);
@@ -132,17 +145,16 @@ impl<D: DrawTarget> RenderText<D> for SevenSegmentTextStyle<D::Color> {
             }
         }
 
-        Ok(Point::new(
-            (self.digit_size.width + self.digit_spacing) as i32 * text.len() as i32,
-            0,
-        ))
+        position += Size::new(0, self.baseline_offset(baseline));
+
+        Ok(position)
     }
 
     fn draw_whitespace(
         &self,
         width: u32,
         position: Point,
-        baseline: Baseline,
+        _baseline: Baseline,
         _target: &mut D,
     ) -> Result<Point, D::Error> {
         Ok(position + Size::new(width, 0))
@@ -165,16 +177,26 @@ impl<C: PixelColor> CharacterStyle for SevenSegmentTextStyle<C> {
 mod tests {
     use super::*;
     use crate::SevenSegmentTextStyleBuilder;
-    use embedded_graphics::{mock_display::MockDisplay, pixelcolor::BinaryColor, text::Text};
+    use embedded_graphics::{
+        mock_display::MockDisplay,
+        pixelcolor::BinaryColor,
+        text::{Text, TextStyleBuilder},
+    };
 
     fn test_digits(
-        style: SevenSegmentTextStyle<BinaryColor>,
+        character_style: SevenSegmentTextStyle<BinaryColor>,
         digits: &str,
         expected_pattern: &[&str],
     ) {
+        let text_style = TextStyleBuilder::new()
+            .character_style(character_style)
+            .baseline(Baseline::Top)
+            .build();
+
         let mut display = MockDisplay::new();
+
         Text::new(digits, Point::zero())
-            .into_styled(style)
+            .into_styled(text_style)
             .draw(&mut display)
             .unwrap();
 
@@ -452,11 +474,12 @@ mod tests {
             .build();
 
         let style2 = SevenSegmentTextStyleBuilder::from(&style1)
+            .digit_size(Size::new(7, 11))
             .segment_color(BinaryColor::Off)
             .build();
 
         let mut display = MockDisplay::new();
-        let next = Text::new("12", Point::zero())
+        let next = Text::new("12", Point::new(0, 10))
             .into_styled(style1)
             .draw(&mut display)
             .unwrap();
@@ -466,15 +489,17 @@ mod tests {
             .unwrap();
 
         display.assert_pattern(&[
-            "       ###   ... ",
-            "    #     #     .",
-            "    #     #     .",
-            "    #     #     .",
-            "       ###   ... ",
-            "    # #         .",
-            "    # #         .",
-            "    # #         .",
-            "       ###   ... ",
+            "             ..... ",
+            "                  .",
+            "       ###        .",
+            "    #     #       .",
+            "    #     #       .",
+            "    #     #  ..... ",
+            "       ###        .",
+            "    # #           .",
+            "    # #           .",
+            "    # #           .",
+            "       ###   ..... ",
         ])
     }
 
@@ -511,6 +536,112 @@ mod tests {
                 "    #       ",
                 "    #       ",
                 " ###        ",
+            ],
+        );
+    }
+
+    fn test_baseline(baseline: Baseline, expected_pattern: &[&str]) {
+        let character_style = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(5, 9))
+            .digit_spacing(2)
+            .segment_width(1)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        let text_style = TextStyleBuilder::new()
+            .character_style(character_style)
+            .baseline(baseline)
+            .build();
+
+        let mut display = MockDisplay::new();
+        Text::new("8", Point::new(0, 8))
+            .into_styled(text_style)
+            .draw(&mut display)
+            .unwrap();
+
+        display.assert_pattern(expected_pattern);
+    }
+
+    #[test]
+    fn baseline_top() {
+        test_baseline(
+            Baseline::Top,
+            &[
+                "     ", //
+                "     ", //
+                "     ", //
+                "     ", //
+                "     ", //
+                "     ", //
+                "     ", //
+                "     ", //
+                " ### ", // ###
+                "#   #", //
+                "#   #", //
+                "#   #", //
+                " ### ", //
+                "#   #", //
+                "#   #", //
+                "#   #", //
+                " ### ", //
+            ],
+        );
+    }
+
+    #[test]
+    fn baseline_middle() {
+        test_baseline(
+            Baseline::Middle,
+            &[
+                "     ", //
+                "     ", //
+                "     ", //
+                "     ", //
+                " ### ", //
+                "#   #", //
+                "#   #", //
+                "#   #", //
+                " ### ", // ###
+                "#   #", //
+                "#   #", //
+                "#   #", //
+                " ### ", //
+            ],
+        );
+    }
+
+    #[test]
+    fn baseline_bottom() {
+        test_baseline(
+            Baseline::Bottom,
+            &[
+                " ### ", //
+                "#   #", //
+                "#   #", //
+                "#   #", //
+                " ### ", //
+                "#   #", //
+                "#   #", //
+                "#   #", //
+                " ### ", // ###
+            ],
+        );
+    }
+
+    #[test]
+    fn baseline_alphabetic() {
+        test_baseline(
+            Baseline::Alphabetic,
+            &[
+                " ### ", //
+                "#   #", //
+                "#   #", //
+                "#   #", //
+                " ### ", //
+                "#   #", //
+                "#   #", //
+                "#   #", //
+                " ### ", // ###
             ],
         );
     }

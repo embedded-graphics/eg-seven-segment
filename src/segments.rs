@@ -95,7 +95,7 @@ mod tests {
             .build();
 
         let mut display = MockDisplay::new();
-        Text::new(text, Point::zero())
+        Text::new(text, Point::new(0, 6))
             .into_styled(style)
             .draw(&mut display)
             .unwrap();
