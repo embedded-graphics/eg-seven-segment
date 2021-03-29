@@ -3,7 +3,10 @@ use embedded_graphics::{
     geometry::AnchorPoint,
     prelude::*,
     primitives::Rectangle,
-    text::{TextMetrics, TextRenderer, VerticalAlignment},
+    text::{
+        renderer::{CharacterStyle, RenderText, TextMetrics},
+        Baseline,
+    },
 };
 
 use crate::{segment::Segment, Segments};
@@ -29,18 +32,14 @@ impl<C: PixelColor> SevenSegmentTextStyle<C> {
     }
 }
 
-impl<C: PixelColor> TextRenderer for SevenSegmentTextStyle<C> {
-    type Color = C;
-
-    fn draw_string<D>(
+impl<D: DrawTarget> RenderText<D> for SevenSegmentTextStyle<D::Color> {
+    fn draw_string(
         &self,
         text: &str,
         mut position: Point,
+        baseline: Baseline,
         target: &mut D,
-    ) -> Result<Point, D::Error>
-    where
-        D: DrawTarget<Color = Self::Color>,
-    {
+    ) -> Result<Point, D::Error> {
         for c in text.chars() {
             if let Ok(segments) = Segments::try_from(c) {
                 let rect = Rectangle::new(position, self.digit_size);
@@ -137,25 +136,22 @@ impl<C: PixelColor> TextRenderer for SevenSegmentTextStyle<C> {
         Ok(Point::new(0, self.digit_size.height as i32 * 3 / 2))
     }
 
-    fn draw_whitespace<D>(
+    fn draw_whitespace(
         &self,
         width: u32,
         position: Point,
+        baseline: Baseline,
         _target: &mut D,
-    ) -> Result<Point, D::Error>
-    where
-        D: DrawTarget<Color = Self::Color>,
-    {
+    ) -> Result<Point, D::Error> {
         Ok(position + Size::new(width, 0))
     }
+}
 
-    fn measure_string(&self, _text: &str, _position: Point) -> TextMetrics {
+impl<C: PixelColor> CharacterStyle for SevenSegmentTextStyle<C> {
+    type Color = C;
+
+    fn measure_string(&self, _text: &str, _position: Point, _baseline: Baseline) -> TextMetrics {
         todo!()
-    }
-
-    fn vertical_offset(&self, position: Point, _vertical_alignment: VerticalAlignment) -> Point {
-        // TODO: support other alignements
-        position
     }
 
     fn line_height(&self) -> u32 {

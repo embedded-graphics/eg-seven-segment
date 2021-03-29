@@ -1,4 +1,4 @@
-use embedded_graphics::{pixelcolor::PixelColor, prelude::*, primitives::Rectangle};
+use embedded_graphics::{prelude::*, primitives::Rectangle};
 
 /// Segment drawable.
 pub struct Segment<C> {
@@ -32,13 +32,10 @@ impl<C> Segment<C> {
     }
 }
 
-impl<C: PixelColor> Drawable for Segment<C> {
-    type Color = C;
+impl<D: DrawTarget> Drawable<D> for Segment<D::Color> {
+    type Output = ();
 
-    fn draw<D>(&self, target: &mut D) -> Result<(), D::Error>
-    where
-        D: DrawTarget<Color = Self::Color>,
-    {
+    fn draw(&self, target: &mut D) -> Result<(), D::Error> {
         if self.rect.is_zero_sized() {
             return Ok(());
         }
