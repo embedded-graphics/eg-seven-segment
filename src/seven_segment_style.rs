@@ -5,7 +5,7 @@ use embedded_graphics::{
     prelude::*,
     primitives::Rectangle,
     text::{
-        renderer::{TextMetrics, TextRenderer},
+        renderer::{CharacterStyle, TextMetrics, TextRenderer},
         Baseline,
     },
 };
@@ -55,6 +55,14 @@ impl<C: PixelColor> SevenSegmentStyle<C> {
             Baseline::Bottom | Baseline::Alphabetic => bottom,
             Baseline::Middle => bottom / 2,
         }
+    }
+}
+
+impl<C: PixelColor> CharacterStyle for SevenSegmentStyle<C> {
+    type Color = C;
+
+    fn set_text_color(&mut self, text_color: Option<Self::Color>) {
+        self.segment_color = text_color;
     }
 }
 
