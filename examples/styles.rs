@@ -1,25 +1,25 @@
-use eg_seven_segment::SevenSegmentTextStyleBuilder;
+use eg_seven_segment::SevenSegmentStyleBuilder;
 use embedded_graphics::{pixelcolor::Rgb888, prelude::*, text::Text};
 use embedded_graphics_simulator::{OutputSettings, SimulatorDisplay, Window};
 
 fn main() -> Result<(), std::convert::Infallible> {
     let mut display = SimulatorDisplay::<Rgb888>::new(Size::new(512, 256));
 
-    let small_green = SevenSegmentTextStyleBuilder::new()
+    let small_green = SevenSegmentStyleBuilder::new()
         .digit_size(Size::new(24, 48))
         .digit_spacing(10)
         .segment_width(6)
         .segment_color(Rgb888::GREEN)
         .build();
 
-    let tiny_blue = SevenSegmentTextStyleBuilder::new()
+    let tiny_blue = SevenSegmentStyleBuilder::new()
         .digit_size(Size::new(16, 24))
         .digit_spacing(10)
         .segment_width(2)
         .segment_color(Rgb888::BLUE)
         .build();
 
-    let large_red = SevenSegmentTextStyleBuilder::new()
+    let large_red = SevenSegmentStyleBuilder::new()
         .digit_size(Size::new(60, 100))
         .digit_spacing(10)
         .segment_width(16)

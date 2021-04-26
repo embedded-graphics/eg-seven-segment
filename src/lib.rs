@@ -9,13 +9,13 @@
 //! ```
 //! # fn main() -> Result<(), core::convert::Infallible> {
 //! use embedded_graphics::{prelude::*, text::Text, pixelcolor::Rgb888};
-//! use eg_seven_segment::SevenSegmentTextStyleBuilder;
+//! use eg_seven_segment::SevenSegmentStyleBuilder;
 //! # use embedded_graphics::mock_display::MockDisplay;
 //! # let mut display = MockDisplay::new();
 //! # display.set_allow_out_of_bounds_drawing(true);
 //!
 //! // Define a new style.
-//! let style = SevenSegmentTextStyleBuilder::new()
+//! let style = SevenSegmentStyleBuilder::new()
 //!     .digit_size(Size::new(10, 20)) // digits are 10x20 pixels
 //!     .digit_spacing(5)              // 5px spacing between digits
 //!     .segment_width(5)              // 5px wide segments
@@ -36,9 +36,9 @@
 
 mod segment;
 mod segments;
-mod seven_segment_text_style;
-mod seven_segment_text_style_builder;
+mod seven_segment_style;
+mod seven_segment_style_builder;
 
 pub use segments::Segments;
-pub use seven_segment_text_style::SevenSegmentTextStyle;
-pub use seven_segment_text_style_builder::SevenSegmentTextStyleBuilder;
+pub use seven_segment_style::SevenSegmentStyle;
+pub use seven_segment_style_builder::SevenSegmentStyleBuilder;

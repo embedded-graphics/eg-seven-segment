@@ -91,13 +91,13 @@ impl TryFrom<char> for Segments {
 
 #[cfg(test)]
 mod tests {
-    use crate::SevenSegmentTextStyleBuilder;
+    use crate::SevenSegmentStyleBuilder;
     use embedded_graphics::{
         mock_display::MockDisplay, pixelcolor::BinaryColor, prelude::*, text::Text,
     };
 
     fn test_segments(text: &str, expected_pattern: &[&str]) {
-        let style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(5, 7))
             .digit_spacing(1)
             .segment_width(1)

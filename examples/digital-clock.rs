@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use chrono::prelude::*;
-use eg_seven_segment::SevenSegmentTextStyleBuilder;
+use eg_seven_segment::SevenSegmentStyleBuilder;
 use embedded_graphics::{
     pixelcolor::BinaryColor,
     prelude::*,
@@ -15,7 +15,7 @@ fn draw_clock<D>(display: &mut D) -> Result<(), D::Error>
 where
     D: DrawTarget<Color = BinaryColor>,
 {
-    let character_style = SevenSegmentTextStyleBuilder::new()
+    let character_style = SevenSegmentStyleBuilder::new()
         .segment_color(BinaryColor::On)
         .build();
 
