@@ -12,14 +12,14 @@ use embedded_graphics::{
 
 use crate::{segment::Segment, Segments};
 
-/// Seven-segment text style.
+/// Seven-segment character style.
 ///
-/// Use [`SevenSegmentTextStyleBuilder`] to build styles.
+/// Use [`SevenSegmentStyleBuilder`] to build styles.
 ///
-/// [`SevenSegmentTextStyleBuilder`]: struct.SevenSegmentTextStyleBuilder.html
+/// [`SevenSegmentStyleBuilder`]: struct.SevenSegmentStyleBuilder.html
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[non_exhaustive]
-pub struct SevenSegmentTextStyle<C> {
+pub struct SevenSegmentStyle<C> {
     /// The size of each digit.
     pub digit_size: Size,
 
@@ -36,7 +36,7 @@ pub struct SevenSegmentTextStyle<C> {
     pub inactive_segment_color: Option<C>,
 }
 
-impl<C: PixelColor> SevenSegmentTextStyle<C> {
+impl<C: PixelColor> SevenSegmentStyle<C> {
     /// Returns the fill color for the given segment state.
     fn state_color(&self, state: bool) -> Option<C> {
         if state {
@@ -58,7 +58,7 @@ impl<C: PixelColor> SevenSegmentTextStyle<C> {
     }
 }
 
-impl<C: PixelColor> TextRenderer for SevenSegmentTextStyle<C> {
+impl<C: PixelColor> TextRenderer for SevenSegmentStyle<C> {
     type Color = C;
 
     fn draw_string<D>(
@@ -227,11 +227,11 @@ impl<C: PixelColor> TextRenderer for SevenSegmentTextStyle<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::SevenSegmentTextStyleBuilder;
+    use crate::SevenSegmentStyleBuilder;
     use embedded_graphics::{mock_display::MockDisplay, pixelcolor::BinaryColor, text::Text};
 
     fn test_digits(
-        character_style: SevenSegmentTextStyle<BinaryColor>,
+        character_style: SevenSegmentStyle<BinaryColor>,
         digits: &str,
         expected_pattern: &[&str],
     ) {
@@ -246,7 +246,7 @@ mod tests {
 
     #[test]
     fn digits_1px_9px() {
-        let style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(5, 9))
             .digit_spacing(1)
             .segment_width(1)
@@ -272,7 +272,7 @@ mod tests {
 
     #[test]
     fn digits_1px_10px() {
-        let style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(5, 10))
             .digit_spacing(1)
             .segment_width(1)
@@ -299,7 +299,7 @@ mod tests {
 
     #[test]
     fn digits_2px_12px() {
-        let style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(7, 12))
             .digit_spacing(1)
             .segment_width(2)
@@ -347,7 +347,7 @@ mod tests {
 
     #[test]
     fn digits_2px_13px() {
-        let style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(7, 13))
             .digit_spacing(1)
             .segment_width(2)
@@ -397,7 +397,7 @@ mod tests {
 
     #[test]
     fn digits_3px_15px() {
-        let style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(9, 15))
             .digit_spacing(1)
             .segment_width(3)
@@ -451,7 +451,7 @@ mod tests {
 
     #[test]
     fn digits_3px_16px() {
-        let style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(9, 16))
             .digit_spacing(1)
             .segment_width(3)
@@ -507,14 +507,14 @@ mod tests {
 
     #[test]
     fn chaining() {
-        let style1 = SevenSegmentTextStyleBuilder::new()
+        let style1 = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(5, 9))
             .digit_spacing(1)
             .segment_width(1)
             .segment_color(BinaryColor::On)
             .build();
 
-        let style2 = SevenSegmentTextStyleBuilder::from(&style1)
+        let style2 = SevenSegmentStyleBuilder::from(&style1)
             .digit_size(Size::new(7, 11))
             .segment_color(BinaryColor::Off)
             .build();
@@ -541,14 +541,14 @@ mod tests {
 
     #[test]
     fn chaining_with_colon() {
-        let style1 = SevenSegmentTextStyleBuilder::new()
+        let style1 = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(5, 9))
             .digit_spacing(1)
             .segment_width(1)
             .segment_color(BinaryColor::On)
             .build();
 
-        let style2 = SevenSegmentTextStyleBuilder::from(&style1)
+        let style2 = SevenSegmentStyleBuilder::from(&style1)
             .digit_size(Size::new(7, 11))
             .segment_color(BinaryColor::Off)
             .build();
@@ -575,7 +575,7 @@ mod tests {
 
     #[test]
     fn multiple_lines() {
-        let style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(5, 9))
             .digit_spacing(2)
             .segment_width(1)
@@ -611,7 +611,7 @@ mod tests {
     }
 
     fn test_baseline(baseline: Baseline, expected_pattern: &[&str]) {
-        let style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(5, 9))
             .digit_spacing(2)
             .segment_width(1)
@@ -712,7 +712,7 @@ mod tests {
 
     #[test]
     fn measure_string() {
-        let style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(7, 12))
             .digit_spacing(1)
             .segment_width(2)
@@ -737,7 +737,7 @@ mod tests {
 
     #[test]
     fn measure_string_with_colon() {
-        let style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentStyleBuilder::new()
             .digit_size(Size::new(7, 12))
             .digit_spacing(1)
             .segment_width(2)

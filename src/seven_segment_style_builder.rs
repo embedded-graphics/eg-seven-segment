@@ -1,18 +1,18 @@
-use crate::SevenSegmentTextStyle;
+use crate::SevenSegmentStyle;
 use embedded_graphics::prelude::*;
 
-/// Seven-segment text style builder.
-pub struct SevenSegmentTextStyleBuilder<C> {
-    style: SevenSegmentTextStyle<C>,
+/// Seven-segment character style builder.
+pub struct SevenSegmentStyleBuilder<C> {
+    style: SevenSegmentStyle<C>,
 }
 
-impl<C: PixelColor> SevenSegmentTextStyleBuilder<C> {
+impl<C: PixelColor> SevenSegmentStyleBuilder<C> {
     /// Creates a new builder.
     pub fn new() -> Self {
         // TODO: set better default values
         // TODO: add default values to docs
         Self {
-            style: SevenSegmentTextStyle {
+            style: SevenSegmentStyle {
                 digit_size: Size::new(12, 24),
                 digit_spacing: 5,
                 segment_width: 3,
@@ -58,19 +58,19 @@ impl<C: PixelColor> SevenSegmentTextStyleBuilder<C> {
     }
 
     /// Builds the text style.
-    pub fn build(self) -> SevenSegmentTextStyle<C> {
+    pub fn build(self) -> SevenSegmentStyle<C> {
         self.style
     }
 }
 
-impl<C: PixelColor> Default for SevenSegmentTextStyleBuilder<C> {
+impl<C: PixelColor> Default for SevenSegmentStyleBuilder<C> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<C: PixelColor> From<&SevenSegmentTextStyle<C>> for SevenSegmentTextStyleBuilder<C> {
-    fn from(style: &SevenSegmentTextStyle<C>) -> Self {
+impl<C: PixelColor> From<&SevenSegmentStyle<C>> for SevenSegmentStyleBuilder<C> {
+    fn from(style: &SevenSegmentStyle<C>) -> Self {
         Self { style: *style }
     }
 }
