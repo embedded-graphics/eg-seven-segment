@@ -13,13 +13,21 @@ use core::convert::TryFrom;
 //  DDDDD
 
 bitflags! {
+    /// Segments.
     pub struct Segments: u8 {
+        /// A segment.
         const A = 0b01000000;
+        /// B segment.
         const B = 0b00100000;
+        /// C segment.
         const C = 0b00010000;
+        /// D segment.
         const D = 0b00001000;
+        /// E segment.
         const E = 0b00000100;
+        /// F segment.
         const F = 0b00000010;
+        /// G segment.
         const G = 0b00000001;
     }
 }
@@ -74,6 +82,8 @@ impl TryFrom<char> for Segments {
             ')' | ']' => Self::A | Self::B | Self::C | Self::D,
             '?' => Self::A | Self::B | Self::E | Self::G,
             // TODO: add https://en.wikipedia.org/wiki/Symbols_for_Legacy_Computing ?
+            // TODO: document PUA
+            '\u{E000}'..='\u{E07F}' => Self::from_bits(value as u8).unwrap(),
             _ => return Err(()),
         })
     }
@@ -95,8 +105,7 @@ mod tests {
             .build();
 
         let mut display = MockDisplay::new();
-        Text::new(text, Point::zero())
-            .into_styled(style)
+        Text::new(text, Point::new(0, 6), style)
             .draw(&mut display)
             .unwrap();
 
@@ -202,6 +211,22 @@ mod tests {
                 "#     #         #     # #    ",
                 "#     #         #     # #    ",
                 " ###   ###   ###   ###       ",
+            ],
+        );
+    }
+
+    #[test]
+    fn private_use_area() {
+        test_segments(
+            "\u{E040}\u{E020}\u{E010}\u{E008}\u{E004}\u{E002}\u{E001}\u{E055}\u{E02A}",
+            &[
+                " ###                                       ###       ",
+                "          #                   #                 #   #",
+                "          #                   #                 #   #",
+                "                                     ###   ###       ",
+                "                #       #                 #   #      ",
+                "                #       #                 #   #      ",
+                "                   ###                           ### ",
             ],
         );
     }

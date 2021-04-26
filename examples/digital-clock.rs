@@ -1,30 +1,61 @@
+use std::time::Duration;
+
+use chrono::prelude::*;
 use eg_seven_segment::SevenSegmentTextStyleBuilder;
-use embedded_graphics::{pixelcolor::BinaryColor, prelude::*, text::Text};
+use embedded_graphics::{
+    pixelcolor::BinaryColor,
+    prelude::*,
+    text::{Alignment, Baseline, Text, TextStyleBuilder},
+};
 use embedded_graphics_simulator::{
-    BinaryColorTheme, OutputSettingsBuilder, SimulatorDisplay, Window,
+    BinaryColorTheme, OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
 
-fn main() {
-    let mut display = SimulatorDisplay::<BinaryColor>::new(Size::new(128, 64));
-
-    let style = SevenSegmentTextStyleBuilder::new()
+fn draw_clock<D>(display: &mut D) -> Result<(), D::Error>
+where
+    D: DrawTarget<Color = BinaryColor>,
+{
+    let character_style = SevenSegmentTextStyleBuilder::new()
         .segment_color(BinaryColor::On)
         .build();
 
-    Text::new(
-        "12:42",
-        Point::new(10, 10)
-        // TODO: use display center point when text alignment is implemented
-        // display.bounding_box().anchor_point(AnchorPoint::Center),
+    let text_style = TextStyleBuilder::new()
+        .alignment(Alignment::Center)
+        .baseline(Baseline::Middle)
+        .build();
+
+    let time = Local::now().format("%H:%M:%S").to_string();
+
+    Text::with_text_style(
+        &time,
+        display.bounding_box().center(),
+        character_style,
+        text_style,
     )
-    .into_styled(style)
-    .draw(&mut display)
-    .unwrap();
+    .draw(display)?;
+
+    Ok(())
+}
+
+fn main() {
+    let mut display = SimulatorDisplay::<BinaryColor>::new(Size::new(128, 64));
 
     let settings = OutputSettingsBuilder::new()
         .theme(BinaryColorTheme::OledBlue)
         .build();
 
     let mut window = Window::new("Digital clock", &settings);
-    window.show_static(&display);
+
+    loop {
+        display.clear(BinaryColor::Off).unwrap();
+        draw_clock(&mut display).unwrap();
+
+        window.update(&mut display);
+
+        if window.events().any(|event| event == SimulatorEvent::Quit) {
+            break;
+        }
+
+        std::thread::sleep(Duration::from_millis(100));
+    }
 }
