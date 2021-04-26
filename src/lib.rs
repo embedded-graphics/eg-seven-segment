@@ -23,9 +23,7 @@
 //!     .build();
 //!
 //! // Use the style to draw text to a embedded-graphics `DrawTarget`.
-//! Text::new("12:42", Point::new(5, 25))
-//!     .into_styled(style)
-//!     .draw(&mut display)?;
+//! Text::new("12:42", Point::new(5, 25), style).draw(&mut display)?;
 //! # Ok(())
 //! # }
 //! ```

@@ -82,7 +82,7 @@ impl TryFrom<char> for Segments {
             ')' | ']' => Self::A | Self::B | Self::C | Self::D,
             '?' => Self::A | Self::B | Self::E | Self::G,
             // TODO: add https://en.wikipedia.org/wiki/Symbols_for_Legacy_Computing ?
-            // TODO: document POA
+            // TODO: document PUA
             '\u{E000}'..='\u{E07F}' => Self::from_bits(value as u8).unwrap(),
             _ => return Err(()),
         })
@@ -105,8 +105,7 @@ mod tests {
             .build();
 
         let mut display = MockDisplay::new();
-        Text::new(text, Point::new(0, 6))
-            .into_styled(style)
+        Text::new(text, Point::new(0, 6), style)
             .draw(&mut display)
             .unwrap();
 

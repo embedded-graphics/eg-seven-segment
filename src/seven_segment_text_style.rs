@@ -5,7 +5,7 @@ use embedded_graphics::{
     prelude::*,
     primitives::Rectangle,
     text::{
-        renderer::{CharacterStyle, RenderText, TextMetrics},
+        renderer::{TextMetrics, TextRenderer},
         Baseline,
     },
 };
@@ -58,14 +58,19 @@ impl<C: PixelColor> SevenSegmentTextStyle<C> {
     }
 }
 
-impl<D: DrawTarget> RenderText<D> for SevenSegmentTextStyle<D::Color> {
-    fn draw_string(
+impl<C: PixelColor> TextRenderer for SevenSegmentTextStyle<C> {
+    type Color = C;
+
+    fn draw_string<D>(
         &self,
         text: &str,
         mut position: Point,
         baseline: Baseline,
         target: &mut D,
-    ) -> Result<Point, D::Error> {
+    ) -> Result<Point, D::Error>
+    where
+        D: DrawTarget<Color = C>,
+    {
         position -= Size::new(0, self.baseline_offset(baseline));
 
         for c in text.chars() {
@@ -151,9 +156,9 @@ impl<D: DrawTarget> RenderText<D> for SevenSegmentTextStyle<D::Color> {
 
                     rect.top_left += Size::new(0, dy);
                     target.fill_solid(&rect, color)?;
-
-                    position += Size::new(self.segment_width + self.digit_spacing, 0);
                 }
+
+                position += Size::new(self.segment_width + self.digit_spacing, 0);
             } else if c == '.' {
                 if let Some(color) = self.segment_color {
                     let rect = Rectangle::new(
@@ -161,9 +166,9 @@ impl<D: DrawTarget> RenderText<D> for SevenSegmentTextStyle<D::Color> {
                         Size::new(self.segment_width, self.segment_width),
                     );
                     target.fill_solid(&rect, color)?;
-
-                    position += Size::new(self.segment_width + self.digit_spacing, 0);
                 }
+
+                position += Size::new(self.segment_width + self.digit_spacing, 0);
             } else {
                 // TODO: how should other characters be handled?
             }
@@ -174,22 +179,32 @@ impl<D: DrawTarget> RenderText<D> for SevenSegmentTextStyle<D::Color> {
         Ok(position)
     }
 
-    fn draw_whitespace(
+    fn draw_whitespace<D>(
         &self,
         width: u32,
         position: Point,
         _baseline: Baseline,
         _target: &mut D,
-    ) -> Result<Point, D::Error> {
+    ) -> Result<Point, D::Error>
+    where
+        D: DrawTarget<Color = C>,
+    {
         Ok(position + Size::new(width, 0))
     }
-}
-
-impl<C: PixelColor> CharacterStyle for SevenSegmentTextStyle<C> {
-    type Color = C;
 
     fn measure_string(&self, text: &str, position: Point, baseline: Baseline) -> TextMetrics {
-        let width = (text.len() as u32 * (self.digit_size.width + self.digit_spacing))
+        let width = text
+            .chars()
+            .map(|c| {
+                let width = if c == '.' || c == ':' {
+                    self.segment_width
+                } else {
+                    self.digit_size.width
+                };
+
+                width + self.digit_spacing
+            })
+            .sum::<u32>()
             .saturating_sub(self.digit_spacing);
 
         let bounding_box = Rectangle::new(
@@ -213,26 +228,16 @@ impl<C: PixelColor> CharacterStyle for SevenSegmentTextStyle<C> {
 mod tests {
     use super::*;
     use crate::SevenSegmentTextStyleBuilder;
-    use embedded_graphics::{
-        mock_display::MockDisplay,
-        pixelcolor::BinaryColor,
-        text::{Text, TextStyleBuilder},
-    };
+    use embedded_graphics::{mock_display::MockDisplay, pixelcolor::BinaryColor, text::Text};
 
     fn test_digits(
         character_style: SevenSegmentTextStyle<BinaryColor>,
         digits: &str,
         expected_pattern: &[&str],
     ) {
-        let text_style = TextStyleBuilder::new()
-            .character_style(character_style)
-            .baseline(Baseline::Top)
-            .build();
-
         let mut display = MockDisplay::new();
 
-        Text::new(digits, Point::zero())
-            .into_styled(text_style)
+        Text::with_baseline(digits, Point::zero(), character_style, Baseline::Top)
             .draw(&mut display)
             .unwrap();
 
@@ -515,14 +520,9 @@ mod tests {
             .build();
 
         let mut display = MockDisplay::new();
-        let next = Text::new("12", Point::new(0, 10))
-            .into_styled(style1)
-            .draw(&mut display)
-            .unwrap();
-        Text::new("3", next)
-            .into_styled(style2)
-            .draw(&mut display)
-            .unwrap();
+        let p = Point::new(0, 10);
+        let next = Text::new("12", p, style1).draw(&mut display).unwrap();
+        Text::new("3", next, style2).draw(&mut display).unwrap();
 
         display.assert_pattern(&[
             "             ..... ",
@@ -536,6 +536,40 @@ mod tests {
             "    # #           .",
             "    # #           .",
             "       ###   ..... ",
+        ])
+    }
+
+    #[test]
+    fn chaining_with_colon() {
+        let style1 = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(5, 9))
+            .digit_spacing(1)
+            .segment_width(1)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        let style2 = SevenSegmentTextStyleBuilder::from(&style1)
+            .digit_size(Size::new(7, 11))
+            .segment_color(BinaryColor::Off)
+            .build();
+
+        let mut display = MockDisplay::new();
+        let p = Point::new(0, 10);
+        let next = Text::new("1:2", p, style1).draw(&mut display).unwrap();
+        Text::new("3", next, style2).draw(&mut display).unwrap();
+
+        display.assert_pattern(&[
+            "               ..... ",
+            "                    .",
+            "         ###        .",
+            "    #       #       .",
+            "    #       #       .",
+            "    # #     #  ..... ",
+            "         ###        .",
+            "    #   #           .",
+            "    # # #           .",
+            "    #   #           .",
+            "         ###   ..... ",
         ])
     }
 
@@ -577,21 +611,15 @@ mod tests {
     }
 
     fn test_baseline(baseline: Baseline, expected_pattern: &[&str]) {
-        let character_style = SevenSegmentTextStyleBuilder::new()
+        let style = SevenSegmentTextStyleBuilder::new()
             .digit_size(Size::new(5, 9))
             .digit_spacing(2)
             .segment_width(1)
             .segment_color(BinaryColor::On)
             .build();
 
-        let text_style = TextStyleBuilder::new()
-            .character_style(character_style)
-            .baseline(baseline)
-            .build();
-
         let mut display = MockDisplay::new();
-        Text::new("8", Point::new(0, 8))
-            .into_styled(text_style)
+        Text::with_baseline("8", Point::new(0, 8), style, baseline)
             .draw(&mut display)
             .unwrap();
 
@@ -679,6 +707,57 @@ mod tests {
                 "#   #", //
                 " ### ", // ###
             ],
+        );
+    }
+
+    #[test]
+    fn measure_string() {
+        let style = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(7, 12))
+            .digit_spacing(1)
+            .segment_width(2)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        let position = Point::new(1, 2);
+
+        let metrics = style.measure_string("12", position, Baseline::Top);
+        assert_eq!(
+            metrics.bounding_box,
+            Rectangle::new(
+                position,
+                style.digit_size.component_mul(Size::new(2, 1)) + Size::new(style.digit_spacing, 0)
+            )
+        );
+        assert_eq!(
+            metrics.next_position,
+            position + metrics.bounding_box.size.x_axis()
+        );
+    }
+
+    #[test]
+    fn measure_string_with_colon() {
+        let style = SevenSegmentTextStyleBuilder::new()
+            .digit_size(Size::new(7, 12))
+            .digit_spacing(1)
+            .segment_width(2)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        let position = Point::new(1, 2);
+
+        let metrics = style.measure_string("1:2", position, Baseline::Top);
+        assert_eq!(
+            metrics.bounding_box,
+            Rectangle::new(
+                position,
+                style.digit_size.component_mul(Size::new(2, 1))
+                    + Size::new(style.digit_spacing * 2 + style.segment_width, 0)
+            )
+        );
+        assert_eq!(
+            metrics.next_position,
+            position + metrics.bounding_box.size.x_axis()
         );
     }
 }

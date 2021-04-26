@@ -1,3 +1,6 @@
+use std::time::Duration;
+
+use chrono::prelude::*;
 use eg_seven_segment::SevenSegmentTextStyleBuilder;
 use embedded_graphics::{
     pixelcolor::BinaryColor,
@@ -5,31 +8,54 @@ use embedded_graphics::{
     text::{Alignment, Baseline, Text, TextStyleBuilder},
 };
 use embedded_graphics_simulator::{
-    BinaryColorTheme, OutputSettingsBuilder, SimulatorDisplay, Window,
+    BinaryColorTheme, OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
 
-fn main() {
-    let mut display = SimulatorDisplay::<BinaryColor>::new(Size::new(128, 64));
-
+fn draw_clock<D>(display: &mut D) -> Result<(), D::Error>
+where
+    D: DrawTarget<Color = BinaryColor>,
+{
     let character_style = SevenSegmentTextStyleBuilder::new()
         .segment_color(BinaryColor::On)
         .build();
 
     let text_style = TextStyleBuilder::new()
-        .character_style(character_style)
         .alignment(Alignment::Center)
         .baseline(Baseline::Middle)
         .build();
 
-    Text::new("12:42", display.bounding_box().center())
-        .into_styled(text_style)
-        .draw(&mut display)
-        .unwrap();
+    let time = Local::now().format("%H:%M:%S").to_string();
+
+    Text::with_text_style(
+        &time,
+        display.bounding_box().center(),
+        character_style,
+        text_style,
+    )
+    .draw(display)?;
+
+    Ok(())
+}
+
+fn main() {
+    let mut display = SimulatorDisplay::<BinaryColor>::new(Size::new(128, 64));
 
     let settings = OutputSettingsBuilder::new()
         .theme(BinaryColorTheme::OledBlue)
         .build();
 
     let mut window = Window::new("Digital clock", &settings);
-    window.show_static(&display);
+
+    loop {
+        display.clear(BinaryColor::Off).unwrap();
+        draw_clock(&mut display).unwrap();
+
+        window.update(&mut display);
+
+        if window.events().any(|event| event == SimulatorEvent::Quit) {
+            break;
+        }
+
+        std::thread::sleep(Duration::from_millis(100));
+    }
 }
