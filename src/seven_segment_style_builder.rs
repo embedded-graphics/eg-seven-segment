@@ -50,9 +50,23 @@ impl<C: PixelColor> SevenSegmentStyleBuilder<C> {
         self
     }
 
+    /// Resets the segment color to transparent.
+    pub fn reset_segment_color(mut self) -> Self {
+        self.style.segment_color = None;
+
+        self
+    }
+
     /// Sets the inactive segment color.
     pub fn inactive_segment_color(mut self, inactive_segment_color: C) -> Self {
         self.style.inactive_segment_color = Some(inactive_segment_color);
+
+        self
+    }
+
+    /// Resets the inactive segment color to transparent.
+    pub fn reset_inactive_segment_color(mut self) -> Self {
+        self.style.inactive_segment_color = None;
 
         self
     }
