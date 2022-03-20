@@ -2,6 +2,7 @@ use crate::SevenSegmentStyle;
 use embedded_graphics::prelude::*;
 
 /// Seven-segment character style builder.
+#[derive(Debug)]
 pub struct SevenSegmentStyleBuilder<C> {
     style: SevenSegmentStyle<C>,
 }

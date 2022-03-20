@@ -1,16 +1,15 @@
 use core::convert::TryFrom;
 
 use embedded_graphics::{
-    geometry::AnchorPoint,
     prelude::*,
-    primitives::Rectangle,
+    primitives::{Rectangle, StyledDrawable},
     text::{
         renderer::{CharacterStyle, TextMetrics, TextRenderer},
         Baseline,
     },
 };
 
-use crate::{segment::Segment, Segments};
+use crate::{Digit, Segments};
 
 /// Seven-segment character style.
 ///
@@ -38,7 +37,7 @@ pub struct SevenSegmentStyle<C> {
 
 impl<C: PixelColor> SevenSegmentStyle<C> {
     /// Returns the fill color for the given segment state.
-    fn state_color(&self, state: bool) -> Option<C> {
+    pub(crate) fn state_color(&self, state: bool) -> Option<C> {
         if state {
             self.segment_color
         } else {
@@ -83,75 +82,7 @@ impl<C: PixelColor> TextRenderer for SevenSegmentStyle<C> {
 
         for c in text.chars() {
             if let Ok(segments) = Segments::try_from(c) {
-                let rect = Rectangle::new(position, self.digit_size);
-
-                let vertical_size = Size::new(self.digit_size.width, self.segment_width);
-                let horizontal_size_top = Size::new(
-                    self.segment_width,
-                    (self.digit_size.height + self.segment_width) / 2,
-                );
-                let horizontal_size_bottom = Size::new(
-                    self.segment_width,
-                    (self.digit_size.height + self.segment_width + 1) / 2,
-                );
-
-                if let Some(color) = self.state_color(segments.contains(Segments::A)) {
-                    Segment::with_reduced_size(
-                        rect.resized(vertical_size, AnchorPoint::TopLeft),
-                        color,
-                    )
-                    .draw(target)?;
-                }
-
-                if let Some(color) = self.state_color(segments.contains(Segments::B)) {
-                    Segment::with_reduced_size(
-                        rect.resized(horizontal_size_top, AnchorPoint::TopRight),
-                        color,
-                    )
-                    .draw(target)?;
-                }
-
-                if let Some(color) = self.state_color(segments.contains(Segments::C)) {
-                    Segment::with_reduced_size(
-                        rect.resized(horizontal_size_bottom, AnchorPoint::BottomRight),
-                        color,
-                    )
-                    .draw(target)?;
-                }
-
-                if let Some(color) = self.state_color(segments.contains(Segments::D)) {
-                    Segment::with_reduced_size(
-                        rect.resized(vertical_size, AnchorPoint::BottomLeft),
-                        color,
-                    )
-                    .draw(target)?;
-                }
-
-                if let Some(color) = self.state_color(segments.contains(Segments::E)) {
-                    Segment::with_reduced_size(
-                        rect.resized(horizontal_size_bottom, AnchorPoint::BottomLeft),
-                        color,
-                    )
-                    .draw(target)?;
-                }
-
-                if let Some(color) = self.state_color(segments.contains(Segments::F)) {
-                    Segment::with_reduced_size(
-                        rect.resized(horizontal_size_top, AnchorPoint::TopLeft),
-                        color,
-                    )
-                    .draw(target)?;
-                }
-
-                if let Some(color) = self.state_color(segments.contains(Segments::G)) {
-                    Segment::with_reduced_size(
-                        rect.resized(vertical_size, AnchorPoint::CenterLeft),
-                        color,
-                    )
-                    .draw(target)?;
-                }
-
-                position += self.digit_size.x_axis() + Size::new(self.digit_spacing, 0);
+                position = Digit::new(segments, position).draw_styled(self, target)?;
             } else if c == ':' {
                 if let Some(color) = self.segment_color {
                     let dy = self.digit_size.height / 3;
@@ -178,7 +109,7 @@ impl<C: PixelColor> TextRenderer for SevenSegmentStyle<C> {
 
                 position += Size::new(self.segment_width + self.digit_spacing, 0);
             } else {
-                // TODO: how should other characters be handled?
+                position += self.digit_size.x_axis() + Size::new(self.digit_spacing, 0);
             }
         }
 
@@ -766,6 +697,32 @@ mod tests {
         assert_eq!(
             metrics.next_position,
             position + metrics.bounding_box.size.x_axis()
+        );
+    }
+
+    #[test]
+    fn invalid_char() {
+        let style = SevenSegmentStyleBuilder::new()
+            .digit_size(Size::new(5, 9))
+            .digit_spacing(1)
+            .segment_width(1)
+            .segment_color(BinaryColor::On)
+            .build();
+
+        test_digits(
+            style,
+            "0W1",
+            &[
+                " ###             ",
+                "#   #           #",
+                "#   #           #",
+                "#   #           #",
+                "                 ",
+                "#   #           #",
+                "#   #           #",
+                "#   #           #",
+                " ###             ",
+            ],
         );
     }
 }
