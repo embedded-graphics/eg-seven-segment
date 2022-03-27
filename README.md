@@ -52,10 +52,10 @@ Digit::new('0'.try_into().unwrap(), next)
     .draw(&mut display)?;
 ```
 
-[`embedded-graphics`](https://docs.rs/embedded-graphics)
-[`Text`](https://docs.rs/embedded-graphics/latest/embeddded_graphics/text/struct.Text.html)
-[`SevenSegmentStyle`](https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.SevenSegmentStyle.html)
-[`Digit`](https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.Digit.html)
+[`embedded-graphics`]: https://docs.rs/embedded-graphics
+[`Text`]: https://docs.rs/embedded-graphics/latest/embeddded_graphics/text/struct.Text.html
+[`SevenSegmentStyle`]: https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.SevenSegmentStyle.html
+[`Digit`]: https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.Digit.html
 [img1]: assets/styles.png
 
 [`embedded-graphics`]: embedded_graphics

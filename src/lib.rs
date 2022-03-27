@@ -63,10 +63,10 @@
 //! ```
 //!
 //! <!-- README-LINKS
-//! [`embedded-graphics`](https://docs.rs/embedded-graphics)
-//! [`Text`](https://docs.rs/embedded-graphics/latest/embeddded_graphics/text/struct.Text.html)
-//! [`SevenSegmentStyle`](https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.SevenSegmentStyle.html)
-//! [`Digit`](https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.Digit.html)
+//! [`embedded-graphics`]: https://docs.rs/embedded-graphics
+//! [`Text`]: https://docs.rs/embedded-graphics/latest/embeddded_graphics/text/struct.Text.html
+//! [`SevenSegmentStyle`]: https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.SevenSegmentStyle.html
+//! [`Digit`]: https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.Digit.html
 //! [img1]: assets/styles.png
 //! README-LINKS -->
 //!
