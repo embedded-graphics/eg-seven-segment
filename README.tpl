@@ -1,5 +1,11 @@
 # eg-seven-segment
 
+
+[![CI](https://github.com/embedded-graphics/eg-seven-segment/actions/workflows/rust.yml/badge.svg)](https://github.com/embedded-graphics/eg-seven-segment/actions/workflows/rust.yml)
+[![Crates.io](https://img.shields.io/crates/v/eg-seven-segment.svg)](https://crates.io/crates/eg-seven-segment)
+[![Docs.rs](https://docs.rs/eg-seven-segment/badge.svg)](https://docs.rs/eg-seven-segment)
+[![embedded-graphics on Matrix](https://img.shields.io/matrix/rust-embedded-graphics:matrix.org)](https://matrix.to/#/#rust-embedded-graphics:matrix.org)
+
 {{readme}}
 
 ## License

@@ -1,8 +1,15 @@
 # eg-seven-segment
 
+
+[![CI](https://github.com/embedded-graphics/eg-seven-segment/actions/workflows/rust.yml/badge.svg)](https://github.com/embedded-graphics/eg-seven-segment/actions/workflows/rust.yml)
+[![Crates.io](https://img.shields.io/crates/v/eg-seven-segment.svg)](https://crates.io/crates/eg-seven-segment)
+[![Docs.rs](https://docs.rs/eg-seven-segment/badge.svg)](https://docs.rs/eg-seven-segment)
+[![embedded-graphics on Matrix](https://img.shields.io/matrix/rust-embedded-graphics:matrix.org)](https://matrix.to/#/#rust-embedded-graphics:matrix.org)
+
 `eg-seven-segment` is a seven-segment display text renderer for use with
-[`embedded-graphics`]. The appearance of the drawn digits can be configured
-to achieve a wide variety of styles.
+[`embedded-graphics`]. It can be used to display virtual seven-segment displays
+on any [`embedded-graphics`] [`DrawTarget`]. The appearance of the drawn digits
+can be configured to achieve a wide variety of styles.
 
 ![eg-seven-segment example][img1]
 
@@ -54,12 +61,14 @@ Digit::new('0'.try_into().unwrap(), next)
 
 [`embedded-graphics`]: https://docs.rs/embedded-graphics
 [`Text`]: https://docs.rs/embedded-graphics/latest/embeddded_graphics/text/struct.Text.html
+[`DrawTarget`]: https://docs.rs/embedded-graphics/latest/embeddded_graphics/draw_target/struct.DrawTarget.html
 [`SevenSegmentStyle`]: https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.SevenSegmentStyle.html
 [`Digit`]: https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.Digit.html
 [img1]: assets/styles.png
 
 [`embedded-graphics`]: embedded_graphics
 [`Text`]: embedded_graphics::text::Text
+[`DrawTarget`]: embedded_graphics::draw_target::DrawTarget
 
 ## License
 
