@@ -1,8 +1,8 @@
 # eg-seven-segment
 
-`eg-seven-segment` is a seven-segment text renderer for use with
-[`embedded-graphics`]. It can be used to draw seven-segment displays with
-different sizes and styles.
+`eg-seven-segment` is a seven-segment display text renderer for use with
+[`embedded-graphics`]. The appearance of the drawn digits can be configured
+to achieve a wide variety of styles.
 
 ![eg-seven-segment example][img1]
 
