@@ -12,5 +12,9 @@ check-readme: _build-readme
 _build-readme:
     mkdir -p target
     cargo readme | \
-    sed '/^\[img1\]/s#data:image.*#assets/styles.png#' \
+    sed "/README-LINKS/d" \
     > target/README.md
+
+base64-images:
+    echo -n "[img1]: data:image/png;base64," > assets/styles.png_base64
+    base64 -w0 assets/styles.png >> assets/styles.png_base64
