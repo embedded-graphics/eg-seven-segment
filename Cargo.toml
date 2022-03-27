@@ -8,6 +8,12 @@ repository = "https://github.com/embedded-graphics/eg-seven-segment"
 categories = ["embedded", "no-std"]
 keywords = ["embedded-graphics", "graphics", "font", "text"]
 license = "MIT OR Apache-2.0"
+exclude = [
+    "/.github",
+    "/README.tpl",
+    "/justfile",
+    "/assets/",
+]
 
 [dependencies]
 embedded-graphics = "0.7.1"
