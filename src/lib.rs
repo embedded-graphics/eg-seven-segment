@@ -1,6 +1,7 @@
 //! `eg-seven-segment` is a seven-segment display text renderer for use with
-//! [`embedded-graphics`]. The appearance of the drawn digits can be configured
-//! to achieve a wide variety of styles.
+//! [`embedded-graphics`]. It can be used to display virtual seven-segment displays
+//! on any [`embedded-graphics`] [`DrawTarget`]. The appearance of the drawn digits
+//! can be configured to achieve a wide variety of styles.
 //!
 //! ![eg-seven-segment example][img1]
 //!
@@ -65,6 +66,7 @@
 //! <!-- README-LINKS
 //! [`embedded-graphics`]: https://docs.rs/embedded-graphics
 //! [`Text`]: https://docs.rs/embedded-graphics/latest/embeddded_graphics/text/struct.Text.html
+//! [`DrawTarget`]: https://docs.rs/embedded-graphics/latest/embeddded_graphics/draw_target/struct.DrawTarget.html
 //! [`SevenSegmentStyle`]: https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.SevenSegmentStyle.html
 //! [`Digit`]: https://docs.rs/eg-seven-segment/latest/eg_seven_segment/struct.Digit.html
 //! [img1]: assets/styles.png
@@ -72,6 +74,7 @@
 //!
 //! [`embedded-graphics`]: embedded_graphics
 //! [`Text`]: embedded_graphics::text::Text
+//! [`DrawTarget`]: embedded_graphics::draw_target::DrawTarget
 #![doc = include_str!("../assets/styles.png_base64")]
 //
 #![no_std]
