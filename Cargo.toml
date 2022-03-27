@@ -12,7 +12,6 @@ exclude = [
     "/.github",
     "/README.tpl",
     "/justfile",
-    "/assets/",
 ]
 
 [dependencies]
