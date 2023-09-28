@@ -69,6 +69,7 @@ bitflags! {
     /// </g>
     /// </svg>
     /// </center>
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct Segments: u8 {
         /// A segment.
         const A = 0b01000000;
